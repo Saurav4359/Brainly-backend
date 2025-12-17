@@ -1,6 +1,9 @@
-import {connect, model, Schema } from "mongoose";
+import mongoose, { connect, model, Schema } from "mongoose";
+ 
 
-connect("mongodb+srv://Saurav:cARYaRX7uHzgE2Hw@cluster0.gxeqafm.mongodb.net/Brainly");
+connect(
+  "mongodb+srv://Saurav:cARYaRX7uHzgE2Hw@cluster0.gxeqafm.mongodb.net/Brainly"
+);
 
 const UserSchema = new Schema({
   username: {
@@ -12,4 +15,21 @@ const UserSchema = new Schema({
   },
 });
 
-export  const UserModel = model("Users",UserSchema);
+export const UserModel = model("Users", UserSchema);
+
+const contentSchema = new Schema({
+  title: {
+    type: String,
+  },
+  link :{
+    type: String
+  },
+  tags: [{ type: mongoose.Types.ObjectId, ref: "Tag" }],
+  userId:  {
+    type :mongoose.Types.ObjectId,
+    ref :"Users",
+    required: true
+  }
+});
+  export const contentModel=model("Content",contentSchema);
+ 
