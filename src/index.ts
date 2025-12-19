@@ -1,11 +1,5 @@
-declare global {
-  namespace express {
-    export interface Request {
-      userId?: string;
-    }
-  }
-}
 import express from "express";
+import mongoose, { mongo } from "mongoose";
 import jwt from "jsonwebtoken";
 import { signup } from "./validators/signup.js";
 import { contentModel, LinkModel, UserModel } from "./models/db.js";
@@ -18,16 +12,16 @@ app.use(express.json());
 app.post("/api/v1/signup", async (req, res) => {
   const { data, success, error } = signup.safeParse(req.body);
   if (!success) {
-    res.status(401).json({
+    return res.status(400).json({
       message: "Error",
       error: error,
     });
   }
+
   try {
-    //@ts-ignore
     const user = await UserModel.create({
-      username: data?.username,
-      password: data?.password,
+      username: data.username,
+      password: data.password,
     });
 
     res.status(200).json({
@@ -44,17 +38,16 @@ app.post("/api/v1/signup", async (req, res) => {
 app.post("/api/v1/signin", async (req, res) => {
   const { success, data, error } = signup.safeParse(req.body);
   if (!success) {
-    res.status(401).json({
+    return res.status(400).json({
       message: "Invalid Input",
       error: error,
     });
   }
 
   try {
-    //@ts-ignore
     const userexist = await UserModel.findOne({
-      username: data?.username,
-      password: data?.password,
+      username: data.username,
+      password: data.password,
     });
 
     if (userexist) {
@@ -76,12 +69,10 @@ app.post("/api/v1/content", userMiddleware, async (req, res) => {
   const { link, title } = req.body;
 
   try {
-    //@ts-ignore
     await contentModel.create({
       link,
       title,
-      //@ts-ignore
-      userId: req.userId,
+      userId: new mongoose.Types.ObjectId(req.userId),// converts req.userId from string to object 
       tags: [],
     });
     res.status(200).json({
@@ -93,13 +84,12 @@ app.post("/api/v1/content", userMiddleware, async (req, res) => {
 });
 
 app.get("/api/v1/content", userMiddleware, async (req, res) => {
-  //@ts-ignore
   const userId = req.userId;
   const content = await contentModel
     .find({
-      userId: userId,
+      userId: new mongoose.Types.ObjectId(req.userId),
     })
-    .populate("userId", "username"); //(relationship) used to bring data from reference
+    .populate("userId", "username"); //(relationship) used to bring data from reference 
 
   res.json({
     content,
@@ -111,8 +101,7 @@ app.delete("/api/v1/content", userMiddleware, async (req, res) => {
   try {
     await contentModel.deleteMany({
       _id: contentId,
-      //@ts-ignore
-      userId: req.userId,
+      userId: new mongoose.Types.ObjectId(req.userId),
     });
 
     res.json({
@@ -127,14 +116,12 @@ app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
   const share = req.body.share;
   if (share) {
     await LinkModel.create({
-      // @ts-ignore
-      userId: req.userId,
+      userId: new mongoose.Types.ObjectId(req.userId),
       hash: random(10),
     });
   } else {
     await LinkModel.deleteOne({
-      // @ts-ignore
-      userId: req.userId,
+      userId: new mongoose.Types.ObjectId(req.userId),
     });
   }
 
@@ -147,31 +134,31 @@ app.get("/api/v1/brain/:shareLink", async (req, res) => {
   const hash = req.params.shareLink;
   const link = await LinkModel.findOne({
     hash,
-  }); 
-  if(!link) {
+  });
+  if (!link) {
     res.status(411).json({
-      "message" :"Sorry incorrect input"
-    })
-    return; 
+      message: "Sorry incorrect input",
+    });
+    return;
   }
 
-  const content=await contentModel.find({
-      userId: link.userId
-  })
+  const content = await contentModel.find({
+    userId: link.userId,
+  });
 
-  const user =await UserModel.findOne({
-    _id: link.userId
-  })
-if(!user) {
-  res.status(411).json({
-    message : "user not found, error should ideally not happen"
-  })
-  return;
-}
+  const user = await UserModel.findOne({
+    _id: link.userId,
+  });
+  if (!user) {
+    res.status(411).json({
+      message: "user not found, error should ideally not happen",
+    });
+    return;
+  }
   res.json({
-    username :user.username,
-    content
-  })
+    username: user.username,
+    content,
+  });
 });
 
 app.listen(3000);
