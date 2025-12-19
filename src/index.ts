@@ -72,7 +72,7 @@ app.post("/api/v1/content", userMiddleware, async (req, res) => {
     await contentModel.create({
       link,
       title,
-      userId: new mongoose.Types.ObjectId(req.userId),// converts req.userId from string to object 
+      userId: new mongoose.Types.ObjectId(req.userId), // converts req.userId from string to object
       tags: [],
     });
     res.status(200).json({
@@ -89,7 +89,7 @@ app.get("/api/v1/content", userMiddleware, async (req, res) => {
     .find({
       userId: new mongoose.Types.ObjectId(req.userId),
     })
-    .populate("userId", "username"); //(relationship) used to bring data from reference 
+    .populate("userId", "username"); //(relationship) used to bring data from reference
 
   res.json({
     content,
@@ -115,19 +115,28 @@ app.delete("/api/v1/content", userMiddleware, async (req, res) => {
 app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
   const share = req.body.share;
   if (share) {
-    await LinkModel.create({
+    const linkExist=await LinkModel.findOne({
+       userId: new mongoose.Types.ObjectId(req.userId)
+    })
+    if(linkExist){
+      res.status(401).json({message : "Link already created",
+         link :  linkExist.hash
+      })
+      return;
+    }
+    const link = await LinkModel.create({
       userId: new mongoose.Types.ObjectId(req.userId),
       hash: random(10),
     });
-  } else {
-    await LinkModel.deleteOne({
+    return res.status(200).send(link.hash);
+  }
+   else {
+    await LinkModel.deleteMany({
       userId: new mongoose.Types.ObjectId(req.userId),
     });
+    return res.json("Link deleted");
   }
-
-  res.json({
-    message: "Updated shareable link",
-  });
+ 
 });
 
 app.get("/api/v1/brain/:shareLink", async (req, res) => {
