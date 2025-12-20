@@ -1,4 +1,5 @@
 import mongoose, { connect, model, Schema } from "mongoose";
+import { string } from "zod";
  
 
 connect(
@@ -23,6 +24,9 @@ const contentSchema = new Schema({
   },
   link :{
     type: String
+  },
+  type :{
+    type :String
   },
   tags: [{ type: mongoose.Types.ObjectId, ref: "Tag" }],
   userId:  {

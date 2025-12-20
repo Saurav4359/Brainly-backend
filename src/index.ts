@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose, { mongo } from "mongoose";
+import cors from "cors";
 import jwt from "jsonwebtoken";
 import { signup } from "./validators/signup.js";
 import { contentModel, LinkModel, UserModel } from "./models/db.js";
@@ -8,6 +9,7 @@ import { random } from "./utils/utils.js";
 const jwt_key = "rwqegwerg54";
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.post("/api/v1/signup", async (req, res) => {
   const { data, success, error } = signup.safeParse(req.body);
@@ -66,12 +68,13 @@ app.post("/api/v1/signin", async (req, res) => {
 });
 
 app.post("/api/v1/content", userMiddleware, async (req, res) => {
-  const { link, title } = req.body;
+  const { link, title ,type} = req.body;
 
   try {
     await contentModel.create({
       link,
       title,
+      type,
       userId: new mongoose.Types.ObjectId(req.userId), // converts req.userId from string to object
       tags: [],
     });
