@@ -68,7 +68,7 @@ app.post("/api/v1/signin", async (req, res) => {
 });
 
 app.post("/api/v1/content", userMiddleware, async (req, res) => {
-  const { link, title ,type} = req.body;
+  const { link, title, type } = req.body;
 
   try {
     await contentModel.create({
@@ -118,13 +118,13 @@ app.delete("/api/v1/content", userMiddleware, async (req, res) => {
 app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
   const share = req.body.share;
   if (share) {
-    const linkExist=await LinkModel.findOne({
-       userId: new mongoose.Types.ObjectId(req.userId)
-    })
-    if(linkExist){
-      res.status(401).json({message : "Link already created",
-         link :  linkExist.hash
-      })
+    const linkExist = await LinkModel.findOne({
+      userId: new mongoose.Types.ObjectId(req.userId),
+    });
+    if (linkExist) {
+      res
+        .status(401)
+        .json({ message: "Link already created", link: linkExist.hash });
       return;
     }
     const link = await LinkModel.create({
@@ -132,14 +132,12 @@ app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
       hash: random(10),
     });
     return res.status(200).send(link.hash);
-  }
-   else {
+  } else {
     await LinkModel.deleteMany({
       userId: new mongoose.Types.ObjectId(req.userId),
     });
     return res.json("Link deleted");
   }
- 
 });
 
 app.get("/api/v1/brain/:shareLink", async (req, res) => {
