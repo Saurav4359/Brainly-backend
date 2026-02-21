@@ -10,6 +10,7 @@ const jwt_key = "rwqegwerg54";
 const app = express();
 app.use(express.json());
 app.use(cors());
+const PORT = process.env.PORT! || 4000;
 
 app.post("/api/v1/signup", async (req, res) => {
   const { data, success, error } = signup.safeParse(req.body);
@@ -171,4 +172,4 @@ app.get("/api/v1/brain/:shareLink", async (req, res) => {
   });
 });
 
-app.listen(3000);
+app.listen(PORT);

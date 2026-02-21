@@ -1,6 +1,7 @@
 import mongoose, { connect, model, Schema } from "mongoose";
 import "dotenv/config";
 
+ 
 connect(process.env.MONGO_URL!);
 
 const UserSchema = new Schema({
