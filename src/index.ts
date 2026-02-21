@@ -12,6 +12,9 @@ app.use(express.json());
 app.use(cors());
 const PORT = process.env.PORT! || 4000;
 
+app.get("/", (req, res) => {
+  res.send("API is up and running!");
+});
 app.post("/api/v1/signup", async (req, res) => {
   const { data, success, error } = signup.safeParse(req.body);
   if (!success) {
